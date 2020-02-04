@@ -135,6 +135,7 @@ namespace BililiveRecorder.Core
                 throw new ObjectDisposedException(nameof(RecordedRoom));
             }
             var r = StreamMonitor.Start();
+            StreamMonitor.Setup_DanmakuRec(this);
             TriggerPropertyChanged(nameof(IsMonitoring));
             return r;
         }
