@@ -77,7 +77,6 @@ namespace BililiveRecorder.Core
 
         private ConfigV1 _config { get; }
         public IStreamMonitor StreamMonitor { get; }
-        private DanmakuRecorder DanmakuRec;
 
         private bool _retry = true;
         private HttpResponseMessage _response;
