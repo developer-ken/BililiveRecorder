@@ -77,7 +77,6 @@ namespace BililiveRecorder.Core
 
         private ConfigV1 _config { get; }
         public IStreamMonitor StreamMonitor { get; }
-        private DanmakuRecorder DanmakuRec;
 
         private bool _retry = true;
         private HttpResponseMessage _response;
@@ -326,7 +325,7 @@ namespace BililiveRecorder.Core
                     StreamMonitor.Check(TriggerType.HttpApiRecheck, (int)_config.TimingStreamRetry);
                 }
             }
-            DanmakuRec = new DanmakuRecorder((StreamMonitor)StreamMonitor, _config, this);
+            new DanmakuRecorder((StreamMonitor)StreamMonitor, _config, this);
             return;
 
             async Task _ReadStreamLoop()
@@ -355,8 +354,6 @@ namespace BililiveRecorder.Core
                             break;
                         }
                     }
-                    //这里录制停止了
-                    DanmakuRecorder.getRecorderbyRoomId(RoomId).FinishFile();//同时停止弹幕录制
                     logger.Log(RoomId, LogLevel.Info,
                         (token.IsCancellationRequested ? "本地操作结束当前录制。" : "服务器关闭直播流，可能是直播已结束。")
                         + (_retry ? "将重试启动。" : ""));
@@ -373,6 +370,8 @@ namespace BililiveRecorder.Core
                 }
                 finally
                 {
+                    //这里录制停止了
+                    DanmakuRecorder.getRecorderbyRoomId(RoomId).FinishFile();//同时停止弹幕录制
                     _CleanupFlvRequest();
                 }
             }
