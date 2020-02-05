@@ -85,12 +85,6 @@ namespace BililiveRecorder.Core
 
         private void Receiver_ReceivedDanmaku(object sender, ReceivedDanmakuArgs e)
         {
-            if (!isActive)
-            {
-                logger.Log(LogLevel.Fatal, "弹幕录制模块的一个对象已经被关闭，却仍然在被调用");
-                return;
-            }
-            //logger.Log(LogLevel.Debug, "收到一条弹幕；" + e.Danmaku.RawData);
             if (_recordedRoom.IsRecording && record_filter.Contains(e.Danmaku.MsgType))//正在录制符合要记录的类型
             {
 

@@ -117,7 +117,6 @@ namespace BililiveRecorder.Core
             StreamMonitor = newIStreamMonitor(RoomId);
             StreamMonitor.RoomInfoUpdated += StreamMonitor_RoomInfoUpdated;
             StreamMonitor.StreamStarted += StreamMonitor_StreamStarted;
-            StreamMonitor.Setup_DanmakuRec(this);
 
             StreamMonitor.FetchRoomInfoAsync();
         }
@@ -225,6 +224,8 @@ namespace BililiveRecorder.Core
             }
 
             // HttpWebRequest request = null;
+
+            StreamMonitor.Setup_DanmakuRec(this);
 
             cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
