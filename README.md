@@ -1,10 +1,6 @@
 # BiliBili Stream Recorder
 
-[![Build status](https://ci.appveyor.com/api/projects/status/1n4822yitgtu7ht7?svg=true)](https://ci.appveyor.com/project/Genteure/bililiverecorder)
-[![Version](https://img.shields.io/github/tag/Bililive/BililiveRecorder.svg?label=Version)](#)
-[![Issues are "help wanted"](https://img.shields.io/github/issues/Bililive/BililiveRecorder/help%20wanted.svg)](https://github.com/Bililive/BililiveRecorder/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
-[![Pull Request Welcome](https://img.shields.io/badge/Pull%20request-welcome-brightgreen.svg)](#)
-[![license](https://img.shields.io/github/license/Bililive/BililiveRecorder.svg)](#)
+[暂停更新]
 
 [简体中文 | Simplified Chinese](README_CN.md)
 
