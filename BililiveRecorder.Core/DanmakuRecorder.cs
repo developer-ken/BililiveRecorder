@@ -1,12 +1,9 @@
-﻿using BililiveRecorder.Core;
-using BililiveRecorder.Core.Config;
-using Newtonsoft.Json.Linq;
+﻿using BililiveRecorder.Core.Config;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Threading;
 
 namespace BililiveRecorder.Core
 {
@@ -80,7 +77,9 @@ namespace BililiveRecorder.Core
         }
         public static int DateTimeToUnixTime(DateTime dateTime)
         {
+#pragma warning disable CS0618 // '“TimeZone”已过时:“System.TimeZone has been deprecated.  Please investigate the use of System.TimeZoneInfo instead.”
             return (int)(dateTime - TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1))).TotalSeconds;
+#pragma warning restore CS0618 // '“TimeZone”已过时:“System.TimeZone has been deprecated.  Please investigate the use of System.TimeZoneInfo instead.”
         }
 
         private void Receiver_ReceivedDanmaku(object sender, ReceivedDanmakuArgs e)

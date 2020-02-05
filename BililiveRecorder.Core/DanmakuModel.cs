@@ -58,7 +58,7 @@ namespace BililiveRecorder.Core
         /// </list></para>
         /// </summary>
         public string CommentText { get; set; }
-        
+
         /// <summary>
         /// 弹幕被发送的时间
         /// </summary>
