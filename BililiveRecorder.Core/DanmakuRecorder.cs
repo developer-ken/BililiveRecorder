@@ -57,18 +57,6 @@ namespace BililiveRecorder.Core
 
             #region 弹幕文件的头部
             stream_to_file.WriteLine("<?xml version=\"1.0\" encoding=\"UTF - 8\"?>");
-            stream_to_file.WriteLine("<!-- " +
-                "BililiveRecorder\n" +
-                "文件中将包含一些必要的冗余信息以便在时间轴错乱时有机会重新校对时间轴\n" +
-                "这些冗余信息不能被其余的弹幕查看软件所理解\n" +
-                "如果这个文件无法被正确使用，而里面记录了您重要的录播等弹幕数据，请联系我；\n" +
-                "如果你相信软件存在问题，欢迎创建Issue\n\n" +
-                "[弹幕部分开发者]\n" +
-                "Github: @developer_ken\n" +
-                "E-mail: dengbw01@outlook.com\n" +
-                "Bilibili: @鸡生蛋蛋生鸡鸡生万物\n" +
-                "QQ: 1250542735\n" +
-                " -->");
             stream_to_file.WriteLine("<i>");
             stream_to_file.WriteLine("<chatserver>chat.bilibili.com</chatserver>");
             stream_to_file.WriteLine("<chatid>000" + roomId + "</chatid>");//用000开头表示直播弹幕
