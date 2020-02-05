@@ -24,6 +24,8 @@ namespace BililiveRecorder.Core
         /// </summary>
         string using_fname;
 
+        bool isActive = true;
+
         int stream_begin;
 
         //private bool isRecording = false;
@@ -36,6 +38,11 @@ namespace BililiveRecorder.Core
         public DanmakuRecorder(StreamMonitor monitor, ConfigV1 config, RecordedRoom recordedRoom)
         {
             //recordedRoom.rec_path
+            if (_list.ContainsKey(roomId))
+            {
+                logger.Log(LogLevel.Fatal, "!! 另一个弹幕录制模块正在录制这个房间 !!");
+                logger.Log(LogLevel.Fatal, "!! 将会继续运行，但它将脱离控制 !!");
+            }
             using_fname = (DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds.ToString();
             stream_to_file = new StreamWriter(using_fname + ".xml");
             logger.Log(LogLevel.Debug, "弹幕录制暂存为:" + using_fname + ".xml");
@@ -78,6 +85,11 @@ namespace BililiveRecorder.Core
 
         private void Receiver_ReceivedDanmaku(object sender, ReceivedDanmakuArgs e)
         {
+            if (!isActive)
+            {
+                logger.Log(LogLevel.Fatal, "弹幕录制模块的一个对象已经被关闭，却仍然在被调用");
+                return;
+            }
             //logger.Log(LogLevel.Debug, "收到一条弹幕；" + e.Danmaku.RawData);
             if (_recordedRoom.IsRecording && record_filter.Contains(e.Danmaku.MsgType))//正在录制符合要记录的类型
             {
@@ -131,6 +143,11 @@ namespace BililiveRecorder.Core
 
         public void FinishFile()
         {
+            if (!isActive)
+            {
+                logger.Log(LogLevel.Fatal, "弹幕录制模块的一个对象已经被关闭，却仍然在被调用");
+                return;
+            }
             try
             {
                 stream_to_file.WriteLine("</i>");
@@ -151,6 +168,8 @@ namespace BililiveRecorder.Core
                 File.Move(using_fname + ".xml", _recordedRoom.rec_path + ".xml");
                 logger.Log(LogLevel.Debug, "弹幕文件已保存到：" + _recordedRoom.rec_path + ".xml");
                 _list.Remove(roomId);
+                isActive = false;
+                _monitor.ReceivedDanmaku -= Receiver_ReceivedDanmaku;
             }
             catch (Exception err)
             {
