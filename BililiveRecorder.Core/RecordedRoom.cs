@@ -77,6 +77,7 @@ namespace BililiveRecorder.Core
 
         private ConfigV1 _config { get; }
         public IStreamMonitor StreamMonitor { get; }
+        private DanmakuRecorder DanmakuRec;
 
         private bool _retry = true;
         private HttpResponseMessage _response;
@@ -224,8 +225,6 @@ namespace BililiveRecorder.Core
             }
 
             // HttpWebRequest request = null;
-
-            StreamMonitor.Setup_DanmakuRec(this);
 
             cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;

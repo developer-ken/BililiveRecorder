@@ -85,6 +85,7 @@ namespace BililiveRecorder.Core
 
         private void Receiver_ReceivedDanmaku(object sender, ReceivedDanmakuArgs e)
         {
+            //logger.Log(LogLevel.Debug, "收到一条弹幕；" + e.Danmaku.RawData);
             if (_recordedRoom.IsRecording && record_filter.Contains(e.Danmaku.MsgType))//正在录制符合要记录的类型
             {
 
