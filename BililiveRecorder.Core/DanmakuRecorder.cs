@@ -14,7 +14,7 @@ namespace BililiveRecorder.Core
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         public List<MsgTypeEnum> record_filter;
-        private static Dictionary<int,DanmakuRecorder> _list = new Dictionary<int, DanmakuRecorder>();
+        private static Dictionary<int, DanmakuRecorder> _list = new Dictionary<int, DanmakuRecorder>();
         private StreamMonitor _monitor;
         int roomId = 0;
         RecordedRoom _recordedRoom;
@@ -38,9 +38,9 @@ namespace BililiveRecorder.Core
             //recordedRoom.rec_path
             using_fname = (DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds.ToString();
             stream_to_file = new StreamWriter(using_fname + ".xml");
-            logger.Log(LogLevel.Debug, "弹幕录制暂存为:" + using_fname);
+            logger.Log(LogLevel.Debug, "弹幕录制暂存为:" + using_fname + ".xml");
             record_filter = new List<MsgTypeEnum>();
-            
+
             if (config.RecDanmaku) record_filter.Add(MsgTypeEnum.Comment);
             if (config.RecDanmaku_gift) record_filter.Add(MsgTypeEnum.GiftSend);
             if (config.RecDanmaku_guardbuy) record_filter.Add(MsgTypeEnum.GuardBuy);
@@ -50,18 +50,6 @@ namespace BililiveRecorder.Core
 
             #region 弹幕文件的头部
             stream_to_file.WriteLine("<?xml version=\"1.0\" encoding=\"UTF - 8\"?>");
-            stream_to_file.WriteLine("<!-- " +
-                "BililiveRecorder\n" +
-                "文件中将包含一些必要的冗余信息以便在时间轴错乱时有机会重新校对时间轴\n" +
-                "这些冗余信息不能被其余的弹幕查看软件所理解\n" +
-                "如果这个文件无法被正确使用，而里面记录了您重要的录播等弹幕数据，请联系我；\n" +
-                "如果你相信软件存在问题，欢迎创建Issue\n\n" +
-                "[弹幕部分开发者]\n" +
-                "Github: @developer_ken\n" +
-                "E-mail: dengbw01@outlook.com\n" +
-                "Bilibili: @鸡生蛋蛋生鸡鸡生万物\n" +
-                "QQ: 1250542735\n" +
-                " -->");
             stream_to_file.WriteLine("<i>");
             stream_to_file.WriteLine("<chatserver>chat.bilibili.com</chatserver>");
             stream_to_file.WriteLine("<chatid>000" + roomId + "</chatid>");//用000开头表示直播弹幕
@@ -101,7 +89,7 @@ namespace BililiveRecorder.Core
                     case MsgTypeEnum.Comment:
                         logger.Log(LogLevel.Info, "[弹幕]<" + e.Danmaku.UserName + ">" + e.Danmaku.CommentText);
                         string[] displaydata_ = e.Danmaku.DanmakuDisplayInfo.ToString()
-                            .Replace("[","").Replace("]", "").Replace("\r", "").Replace("\n", "").Replace(" ", "").Split(',');
+                            .Replace("[", "").Replace("]", "").Replace("\r", "").Replace("\n", "").Replace(" ", "").Split(',');
                         //logger.Log(LogLevel.Info, "[弹幕]<" + e.Danmaku.UserName + ">SENDTIME = " + e.Danmaku.SendTime);
                         StringBuilder sb = new StringBuilder(70);
                         displaydata_[0] = (e.Danmaku.SendTime - stream_begin).ToString();
@@ -111,7 +99,7 @@ namespace BililiveRecorder.Core
                         {
                             sb.Append(arg + ",");
                         }
-                        sb.Remove(sb.Length-1, 1);
+                        sb.Remove(sb.Length - 1, 1);
                         logger.Log(LogLevel.Debug, "[弹幕]" + sb);
                         stream_to_file.WriteLine("<d p=\"" + sb + "\" recover_info_sendtime=" + e.Danmaku.SendTime + ">" + e.Danmaku.CommentText + "</d>");
                         break;
@@ -146,13 +134,26 @@ namespace BililiveRecorder.Core
             try
             {
                 stream_to_file.WriteLine("</i>");
+                stream_to_file.WriteLine("<!-- " +
+                "BililiveRecorder\n" +
+                "文件中将包含一些必要的冗余信息以便在时间轴错乱时有机会重新校对时间轴\n" +
+                "这些冗余信息不能被其余的弹幕查看软件所理解\n" +
+                "如果这个文件无法被正确使用，而里面记录了您重要的录播等弹幕数据，请联系我；\n" +
+                "如果你相信软件存在问题，欢迎创建Issue\n\n" +
+                "[弹幕部分开发者]\n" +
+                "Github: @developer_ken\n" +
+                "E-mail: dengbw01@outlook.com\n" +
+                "Bilibili: @鸡生蛋蛋生鸡鸡生万物\n" +
+                "QQ: 1250542735\n" +
+                " -->");
                 stream_to_file.Flush();
                 stream_to_file.Close();
                 File.Move(using_fname + ".xml", _recordedRoom.rec_path + ".xml");
                 logger.Log(LogLevel.Debug, "弹幕文件已保存到：" + _recordedRoom.rec_path + ".xml");
                 _list.Remove(roomId);
             }
-            catch(Exception err) {
+            catch (Exception err)
+            {
                 logger.Log(LogLevel.Error, err.Message);
             }
         }
