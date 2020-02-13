@@ -17,7 +17,7 @@ namespace BililiveRecorder.Core
         RecordedRoom _recordedRoom;
         StreamWriter stream_to_file;
         /// <summary>
-        /// 注意！这个变量没有后缀的
+        /// 注意！这个变量的文件名没有后缀的
         /// </summary>
         string using_fname;
 
@@ -35,6 +35,9 @@ namespace BililiveRecorder.Core
         public DanmakuRecorder(StreamMonitor monitor, ConfigV1 config, RecordedRoom recordedRoom)
         {
             //recordedRoom.rec_path
+            _recordedRoom = recordedRoom;
+            roomId = recordedRoom.RoomId;
+            _monitor = monitor;
             if (_list.ContainsKey(roomId))
             {
                 logger.Log(LogLevel.Fatal, "!! 另一个弹幕录制模块正在录制这个房间 !!");
@@ -64,10 +67,6 @@ namespace BililiveRecorder.Core
             stream_to_file.WriteLine("<real_name>0</real_name>");
             stream_to_file.WriteLine("<source>k-v</source>");
             #endregion
-
-            _recordedRoom = recordedRoom;
-            roomId = recordedRoom.RoomId;
-            _monitor = monitor;
             //monitor.StreamStarted += _StreamStarted;
             monitor.ReceivedDanmaku += Receiver_ReceivedDanmaku;
             _list.Add(roomId, this);
@@ -93,8 +92,6 @@ namespace BililiveRecorder.Core
             //logger.Log(LogLevel.Debug, "收到一条弹幕；" + e.Danmaku.RawData);
             if (_recordedRoom.IsRecording && record_filter.Contains(e.Danmaku.MsgType))//正在录制符合要记录的类型
             {
-
-                //TODO: 从Json中拿出发送时间戳和其他信息并转存为某一格式
                 //<d p="time, type, fontsize, color, timestamp, pool, userID, danmuID">TEXT</d>
                 switch (e.Danmaku.MsgType)
                 {
@@ -151,8 +148,10 @@ namespace BililiveRecorder.Core
             try
             {
                 stream_to_file.WriteLine("</i>");
-                stream_to_file.WriteLine("<!-- " +
-                "BililiveRecorder\n" +
+                stream_to_file.WriteLine("<RECOVER_INFO Time_Stop="+ DateTimeToUnixTime(DateTime.Now) + ">");
+                stream_to_file.WriteLine("<DanmakuRecorder />");
+                stream_to_file.WriteLine("<!-- \n" +
+                "BililiveRecorder | DanmakuRecorder\n" +
                 "文件中将包含一些必要的冗余信息以便在时间轴错乱时有机会重新校对时间轴\n" +
                 "这些冗余信息不能被其余的弹幕查看软件所理解\n" +
                 "如果这个文件无法被正确使用，而里面记录了您重要的录播等弹幕数据，请联系我；\n" +
