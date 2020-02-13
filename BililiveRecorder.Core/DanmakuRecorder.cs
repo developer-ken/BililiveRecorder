@@ -38,7 +38,8 @@ namespace BililiveRecorder.Core
             if (_list.ContainsKey(roomId))
             {
                 logger.Log(LogLevel.Fatal, "!! 另一个弹幕录制模块正在录制这个房间 !!");
-                logger.Log(LogLevel.Fatal, "!! 将会继续运行，但它将脱离控制 !!");
+                logger.Log(LogLevel.Fatal, "!! 现在，我们将让它保存未完成的任务并关闭它 !!");
+                getRecorderbyRoomId(roomId).FinishFile();
             }
             using_fname = (DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds.ToString();
             stream_to_file = new StreamWriter(using_fname + ".xml");
@@ -165,6 +166,7 @@ namespace BililiveRecorder.Core
                 stream_to_file.Flush();
                 stream_to_file.Close();
                 File.Move(using_fname + ".xml", _recordedRoom.rec_path + ".xml");
+                logger.Log(LogLevel.Fatal, "弹幕录制模块的一个实例被结束。");
                 logger.Log(LogLevel.Debug, "弹幕文件已保存到：" + _recordedRoom.rec_path + ".xml");
                 _list.Remove(roomId);
                 isActive = false;

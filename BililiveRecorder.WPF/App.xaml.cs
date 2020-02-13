@@ -26,6 +26,7 @@ namespace BililiveRecorder.WPF
 
         private async Task RunCheckUpdate()
         {
+            logger.Info("这是一个非官方版本，不提供更新功能。");
             try
             {
                 if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("BILILIVE_RECORDER_DISABLE_UPDATE"))) { return; }
