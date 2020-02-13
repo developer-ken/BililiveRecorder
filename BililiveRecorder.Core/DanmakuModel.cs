@@ -58,6 +58,19 @@ namespace BililiveRecorder.Core
         /// </list></para>
         /// </summary>
         public string CommentText { get; set; }
+        
+        /// <summary>
+        /// 弹幕被发送的时间
+        /// </summary>
+        public int SendTime { get; set; }
+
+        /// <summary>
+        /// 弹幕该如何被显示
+        /// <para>此项有值的消息类型：<list type="bullet">
+        /// <item><see cref="MsgTypeEnum.Comment"/></item>
+        /// </list></para>
+        /// </summary>
+        public JToken DanmakuDisplayInfo { get; set; }
 
         /// <summary>
         /// 弹幕被发送的时间
