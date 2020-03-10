@@ -1,4 +1,5 @@
 ﻿using BililiveRecorder.Core.Config;
+using Newtonsoft.Json.Linq;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -56,6 +57,8 @@ namespace BililiveRecorder.Core
             if (config.RecDanmaku_welguard) record_filter.Add(MsgTypeEnum.WelcomeGuard);
             if (config.RecDanmaku_welcome) record_filter.Add(MsgTypeEnum.Welcome);
 
+            if (record_filter.Count == 0) return;
+
             #region 弹幕文件的头部
             stream_to_file.WriteLine("<?xml version=\"1.0\" encoding=\"UTF - 8\"?>");
             stream_to_file.WriteLine("<i>");
@@ -72,7 +75,7 @@ namespace BililiveRecorder.Core
             _list.Add(roomId, this);
 
             stream_begin = DateTimeToUnixTime(DateTime.Now);
-            stream_to_file.WriteLine("<RECOVER_INFO Time_Start=" + stream_begin + " />");
+            stream_to_file.WriteLine("<RECOVER_INFO Time_Start='" + stream_begin + "'/>");
             logger.Log(roomId, LogLevel.Debug, "弹幕录制：直播间开播(@" + stream_begin + ")");
         }
         public static int DateTimeToUnixTime(DateTime dateTime)
@@ -110,26 +113,48 @@ namespace BililiveRecorder.Core
                         }
                         sb.Remove(sb.Length - 1, 1);
                         logger.Log(LogLevel.Debug, "[弹幕]" + sb);
-                        stream_to_file.WriteLine("<d p=\"" + sb + "\" recover_info_sendtime=" + e.Danmaku.SendTime + ">" + e.Danmaku.CommentText + "</d>");
+                        stream_to_file.WriteLine("<d p=\"" + sb + "\" recover_info_sendtime='" + e.Danmaku.SendTime + "' username='"+e.Danmaku.UserName+ "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + (e.Danmaku.IsAdmin?"true":"false") + "' vip='" + e.Danmaku.IsVIP + "'>" + e.Danmaku.CommentText + "</d>");
                         break;
                     case MsgTypeEnum.GiftSend:
-                        logger.Log(LogLevel.Info, "[弹幕]<" + e.Danmaku.UserName + ">(" + e.Danmaku.GiftName + ") * " + e.Danmaku.GiftCount);
+                        logger.Log(LogLevel.Info, "[礼物]<" + e.Danmaku.UserName + ">(" + e.Danmaku.GiftName + ") * " + e.Danmaku.GiftCount);
+                        stream_to_file.WriteLine("<gift time='" + e.Danmaku.SendTime + "' username='" + e.Danmaku.UserName + "' giftname='" + e.Danmaku.GiftName + "' count='" + e.Danmaku.GiftCount + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + (e.Danmaku.IsAdmin ? "true" : "false") + "' vip='" + e.Danmaku.IsVIP + "/>");
                         break;
                     case MsgTypeEnum.GuardBuy:
-                        logger.Log(LogLevel.Info, "[弹幕]<" + e.Danmaku.UserName + ">(上船)" + e.Danmaku.GiftCount + "月");
+                        logger.Log(LogLevel.Info, "[大航海]<" + e.Danmaku.UserName + ">(上船)" + e.Danmaku.GiftCount + "月");
+                        stream_to_file.WriteLine("<crew time='" + e.Danmaku.SendTime + "' username='" + e.Danmaku.UserName + "' count='" + e.Danmaku.GiftCount + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + (e.Danmaku.IsAdmin ? "true" : "false") + "' vip='" + e.Danmaku.IsVIP + "'/>");
                         break;
                     case MsgTypeEnum.Welcome:
-                        logger.Log(LogLevel.Info, "[弹幕]<" + e.Danmaku.UserName + ">(欢迎老爷)");
+                        logger.Log(LogLevel.Info, "[欢迎]<" + e.Danmaku.UserName + ">(欢迎老爷)");
+                        stream_to_file.WriteLine("<vip_enter time='" + e.Danmaku.SendTime + "' username='" + e.Danmaku.UserName + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + (e.Danmaku.IsAdmin ? "true" : "false") + "' vip='" + e.Danmaku.IsVIP + "'/>");
                         break;
                     case MsgTypeEnum.WelcomeGuard:
-                        logger.Log(LogLevel.Info, "[弹幕]<" + e.Danmaku.UserName + ">(欢迎船员)");
+                        logger.Log(LogLevel.Info, "[欢迎]<" + e.Danmaku.UserName + ">(欢迎船员)");
+                        stream_to_file.WriteLine("<crew_enter time='" + e.Danmaku.SendTime + "' username='" + e.Danmaku.UserName + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + (e.Danmaku.IsAdmin ? "true" : "false") + "' vip='" + e.Danmaku.IsVIP + "'/>");
                         break;
                     case MsgTypeEnum.Unknown:
-                        logger.Log(LogLevel.Debug, "[弹幕](未解析)" + e.Danmaku.RawData);
+                        //logger.Log(LogLevel.Debug, "[弹幕](未解析)" + e.Danmaku.RawData);
+                        var obj = JObject.Parse(e.Danmaku.RawData);
+                        checkUnknownDanmaku(obj);
                         break;
                     default:
                         break;
                 }
+            }
+        }
+
+        public void checkUnknownDanmaku(JObject obj)
+        {
+            int time_referrence = DateTimeToUnixTime(DateTime.Now);
+            string cmd = obj["cmd"]?.ToObject<string>();
+            switch (cmd)
+            {
+                case "ROOM_BLOCK_MSG":
+                    string uid = obj["uid"]?.ToObject<string>();
+                    string name = obj["uname"]?.ToObject<string>();
+                    string operator_ = obj["operator"]?.ToObject<string>();
+                    logger.Log(LogLevel.Info, "[管理]" + name + "遭到封禁");
+                    stream_to_file.WriteLine("<ban time='" + time_referrence + "' username='" + name + "' uid='"+uid+"' operator='"+operator_+"'/>");
+                    break;
             }
         }
 
@@ -148,7 +173,7 @@ namespace BililiveRecorder.Core
             try
             {
                 stream_to_file.WriteLine("</i>");
-                stream_to_file.WriteLine("<RECOVER_INFO Time_Stop="+ DateTimeToUnixTime(DateTime.Now) + ">");
+                stream_to_file.WriteLine("<RECOVER_INFO Time_Stop='"+ DateTimeToUnixTime(DateTime.Now) + "'/>");
                 stream_to_file.WriteLine("<DanmakuRecorder />");
                 stream_to_file.WriteLine("<!-- \n" +
                 "BililiveRecorder | DanmakuRecorder\n" +

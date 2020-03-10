@@ -23,7 +23,7 @@ namespace BililiveRecorder.WPF
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        private const int MAX_LOG_ROW = 25;
+        private const int MAX_LOG_ROW = 50;
         private const string LAST_WORK_DIR_FILE = "lastworkdir";
 
         private IContainer Container { get; set; }
