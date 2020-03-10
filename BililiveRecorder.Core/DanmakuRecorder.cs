@@ -96,6 +96,7 @@ namespace BililiveRecorder.Core
             if (_recordedRoom.IsRecording && record_filter.Contains(e.Danmaku.MsgType))//正在录制符合要记录的类型
             {
                 //<d p="time, type, fontsize, color, timestamp, pool, userID, danmuID">TEXT</d>
+                var obj = JObject.Parse(e.Danmaku.RawData);
                 switch (e.Danmaku.MsgType)
                 {
                     case MsgTypeEnum.Comment:
@@ -112,8 +113,19 @@ namespace BililiveRecorder.Core
                             sb.Append(arg + ",");
                         }
                         sb.Remove(sb.Length - 1, 1);
-                        logger.Log(LogLevel.Debug, "[弹幕]" + sb);
-                        stream_to_file.WriteLine("<d p=\"" + sb + "\" recover_info_sendtime='" + e.Danmaku.SendTime + "' username='"+e.Danmaku.UserName+ "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + (e.Danmaku.IsAdmin?"true":"false") + "' vip='" + e.Danmaku.IsVIP + "'>" + e.Danmaku.CommentText + "</d>");
+                        var xun = obj["info"][3];
+                        string xunz = "false";
+                        string streammer = "false";
+                        int level = 0;
+                        int targetstreamID = 0;
+                        ; if (xun.HasValues)
+                        {
+                            level = xun[0].ToObject<int>();
+                            xunz = xun[1]?.ToObject<string>();
+                            streammer = xun[2]?.ToObject<string>();
+                            targetstreamID = xun[3].ToObject<int>();
+                        }
+                        stream_to_file.WriteLine("<d p=\"" + sb + "\" recover_info_sendtime='" + e.Danmaku.SendTime + "' username='" + e.Danmaku.UserName + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + (e.Danmaku.IsAdmin ? "true" : "false") + "' vip='" + e.Danmaku.IsVIP + "' tag='" + xunz + "' tag_level='" + level + "' tag_streammer='" + streammer + "' tag_stream_id='" + targetstreamID + "'>" + e.Danmaku.CommentText + "</d>");
                         break;
                     case MsgTypeEnum.GiftSend:
                         logger.Log(LogLevel.Info, "[礼物]<" + e.Danmaku.UserName + ">(" + e.Danmaku.GiftName + ") * " + e.Danmaku.GiftCount);
@@ -133,7 +145,6 @@ namespace BililiveRecorder.Core
                         break;
                     case MsgTypeEnum.Unknown:
                         //logger.Log(LogLevel.Debug, "[弹幕](未解析)" + e.Danmaku.RawData);
-                        var obj = JObject.Parse(e.Danmaku.RawData);
                         checkUnknownDanmaku(obj);
                         break;
                     default:
@@ -153,7 +164,18 @@ namespace BililiveRecorder.Core
                     string name = obj["uname"]?.ToObject<string>();
                     string operator_ = obj["operator"]?.ToObject<string>();
                     logger.Log(LogLevel.Info, "[管理]" + name + "遭到封禁");
-                    stream_to_file.WriteLine("<ban time='" + time_referrence + "' username='" + name + "' uid='"+uid+"' operator='"+operator_+"'/>");
+                    stream_to_file.WriteLine("<ban time='" + time_referrence + "' username='" + name + "' uid='" + uid + "' operator='" + operator_ + "'/>");
+                    break;
+                case "ROOM_REAL_TIME_MESSAGE_UPDATE":
+                    string fans = obj["data"]["fans"]?.ToObject<string>();
+                    string red_notice = obj["data"]["red_notice"]?.ToObject<string>();
+                    logger.Log(LogLevel.Info, "[信息]当前粉丝数：" + fans + "，警告：" + red_notice);
+                    stream_to_file.WriteLine("<info time='" + time_referrence + "' fans='" + fans + "' red_notice='" + red_notice + "'/>");
+                    break;
+                case "ROOM_RANK":
+                    string rank_desc = obj["data"]["rank_desc"]?.ToObject<string>();
+                    logger.Log(LogLevel.Info, "[信息]直播间当前排名：" + rank_desc);
+                    stream_to_file.WriteLine("<rank value='" + rank_desc + "'/>");
                     break;
             }
         }
@@ -173,7 +195,7 @@ namespace BililiveRecorder.Core
             try
             {
                 stream_to_file.WriteLine("</i>");
-                stream_to_file.WriteLine("<RECOVER_INFO Time_Stop='"+ DateTimeToUnixTime(DateTime.Now) + "'/>");
+                stream_to_file.WriteLine("<RECOVER_INFO Time_Stop='" + DateTimeToUnixTime(DateTime.Now) + "'/>");
                 stream_to_file.WriteLine("<DanmakuRecorder />");
                 stream_to_file.WriteLine("<!-- \n" +
                 "BililiveRecorder | DanmakuRecorder\n" +

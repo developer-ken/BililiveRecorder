@@ -305,6 +305,7 @@ namespace BililiveRecorder.Core
 
                     StreamDownloadTask = Task.Run(_ReadStreamLoop);
                     TriggerPropertyChanged(nameof(IsRecording));
+                    new DanmakuRecorder((StreamMonitor)StreamMonitor, _config, this);
                 }
             }
             catch (TaskCanceledException)
@@ -325,7 +326,6 @@ namespace BililiveRecorder.Core
                     StreamMonitor.Check(TriggerType.HttpApiRecheck, (int)_config.TimingStreamRetry);
                 }
             }
-            new DanmakuRecorder((StreamMonitor)StreamMonitor, _config, this);
             return;
 
             async Task _ReadStreamLoop()
