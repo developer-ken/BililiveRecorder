@@ -129,7 +129,7 @@ namespace BililiveRecorder.Core
                         break;
                     case MsgTypeEnum.GiftSend:
                         logger.Log(LogLevel.Info, "[礼物]<" + e.Danmaku.UserName + ">(" + e.Danmaku.GiftName + ") * " + e.Danmaku.GiftCount);
-                        stream_to_file.WriteLine("<gift time='" + e.Danmaku.SendTime + "' username='" + e.Danmaku.UserName + "' giftname='" + e.Danmaku.GiftName + "' count='" + e.Danmaku.GiftCount + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + (e.Danmaku.IsAdmin ? "true" : "false") + "' vip='" + e.Danmaku.IsVIP + "/>");
+                        stream_to_file.WriteLine("<gift time='" + e.Danmaku.SendTime + "' username='" + e.Danmaku.UserName + "' giftname='" + e.Danmaku.GiftName + "' count='" + e.Danmaku.GiftCount + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + (e.Danmaku.IsAdmin ? "true" : "false") + "' vip='" + e.Danmaku.IsVIP + "'/>");
                         break;
                     case MsgTypeEnum.GuardBuy:
                         logger.Log(LogLevel.Info, "[大航海]<" + e.Danmaku.UserName + ">(上船)" + e.Danmaku.GiftCount + "月");
