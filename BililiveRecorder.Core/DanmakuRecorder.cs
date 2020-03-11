@@ -97,6 +97,7 @@ namespace BililiveRecorder.Core
             {
                 //<d p="time, type, fontsize, color, timestamp, pool, userID, danmuID">TEXT</d>
                 var obj = JObject.Parse(e.Danmaku.RawData);
+                int time_referrence = DateTimeToUnixTime(DateTime.Now);
                 switch (e.Danmaku.MsgType)
                 {
                     case MsgTypeEnum.Comment:
@@ -129,19 +130,19 @@ namespace BililiveRecorder.Core
                         break;
                     case MsgTypeEnum.GiftSend:
                         logger.Log(LogLevel.Info, "[礼物]<" + e.Danmaku.UserName + ">(" + e.Danmaku.GiftName + ") * " + e.Danmaku.GiftCount);
-                        stream_to_file.WriteLine("<gift time='" + e.Danmaku.SendTime + "' username='" + e.Danmaku.UserName + "' giftname='" + e.Danmaku.GiftName + "' count='" + e.Danmaku.GiftCount + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + e.Danmaku.IsAdmin + "' vip='" + e.Danmaku.IsVIP + "'/>");
+                        stream_to_file.WriteLine("<gift time='" + time_referrence + "' username='" + e.Danmaku.UserName + "' giftname='" + e.Danmaku.GiftName + "' count='" + e.Danmaku.GiftCount + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + e.Danmaku.IsAdmin + "' vip='" + e.Danmaku.IsVIP + "'/>");
                         break;
                     case MsgTypeEnum.GuardBuy:
                         logger.Log(LogLevel.Info, "[大航海]<" + e.Danmaku.UserName + ">(上船)" + e.Danmaku.GiftCount + "月");
-                        stream_to_file.WriteLine("<crew time='" + e.Danmaku.SendTime + "' username='" + e.Danmaku.UserName + "' count='" + e.Danmaku.GiftCount + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + e.Danmaku.IsAdmin + "' vip='" + e.Danmaku.IsVIP + "'/>");
+                        stream_to_file.WriteLine("<crew time='" + time_referrence + "' username='" + e.Danmaku.UserName + "' count='" + e.Danmaku.GiftCount + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + e.Danmaku.IsAdmin + "' vip='" + e.Danmaku.IsVIP + "'/>");
                         break;
                     case MsgTypeEnum.Welcome:
                         logger.Log(LogLevel.Info, "[欢迎]<" + e.Danmaku.UserName + ">(欢迎老爷)");
-                        stream_to_file.WriteLine("<vip_enter time='" + e.Danmaku.SendTime + "' username='" + e.Danmaku.UserName + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + e.Danmaku.IsAdmin + "' vip='" + e.Danmaku.IsVIP + "'/>");
+                        stream_to_file.WriteLine("<vip_enter time='" + time_referrence + "' username='" + e.Danmaku.UserName + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + e.Danmaku.IsAdmin + "' vip='" + e.Danmaku.IsVIP + "'/>");
                         break;
                     case MsgTypeEnum.WelcomeGuard:
                         logger.Log(LogLevel.Info, "[欢迎]<" + e.Danmaku.UserName + ">(欢迎船员)");
-                        stream_to_file.WriteLine("<crew_enter time='" + e.Danmaku.SendTime + "' username='" + e.Danmaku.UserName + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + e.Danmaku.IsAdmin + "' vip='" + e.Danmaku.IsVIP + "'/>");
+                        stream_to_file.WriteLine("<crew_enter time='" + time_referrence + "' username='" + e.Danmaku.UserName + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + e.Danmaku.IsAdmin + "' vip='" + e.Danmaku.IsVIP + "'/>");
                         break;
                     case MsgTypeEnum.Unknown:
                         //logger.Log(LogLevel.Debug, "[弹幕](未解析)" + e.Danmaku.RawData);
