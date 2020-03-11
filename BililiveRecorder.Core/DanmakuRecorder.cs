@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Xml;
 
 namespace BililiveRecorder.Core
 {
@@ -16,7 +17,8 @@ namespace BililiveRecorder.Core
         private StreamMonitor _monitor;
         int roomId = 0;
         RecordedRoom _recordedRoom;
-        StreamWriter stream_to_file;
+        XmlDocument xml;
+        XmlElement root;
         /// <summary>
         /// 注意！这个变量的文件名没有后缀的
         /// </summary>
@@ -45,8 +47,8 @@ namespace BililiveRecorder.Core
                 logger.Log(LogLevel.Fatal, "!! 现在，我们将让它保存未完成的任务并关闭它 !!");
                 getRecorderbyRoomId(roomId).FinishFile();
             }
+            xml = new XmlDocument();
             using_fname = (DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds.ToString();
-            stream_to_file = new StreamWriter(using_fname + ".xml");
             logger.Log(LogLevel.Debug, "弹幕录制暂存为:" + using_fname + ".xml");
             record_filter = new List<MsgTypeEnum>();
 
@@ -60,23 +62,35 @@ namespace BililiveRecorder.Core
             if (record_filter.Count == 0) return;
 
             #region 弹幕文件的头部
-            stream_to_file.WriteLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-            stream_to_file.WriteLine("<i>");
-            stream_to_file.WriteLine("<chatserver>chat.bilibili.com</chatserver>");
-            stream_to_file.WriteLine("<chatid>000" + roomId + "</chatid>");//用000开头表示直播弹幕
-            stream_to_file.WriteLine("<mission>0</mission>");
-            stream_to_file.WriteLine("<maxlimit>2147483647</maxlimit>");
-            stream_to_file.WriteLine("<state>0</state>");
-            stream_to_file.WriteLine("<real_name>0</real_name>");
-            stream_to_file.WriteLine("<source>k-v</source>");
+            XmlDeclaration xmldec = xml.CreateXmlDeclaration("1.0", "utf-8", null);
+            xml.AppendChild(xmldec);
+            root = xml.CreateElement("i");
+            xml.AppendChild(root);
+            root.AppendChild(node("chatserver", "chat.bilibili.com"));
+            root.AppendChild(node("chatid", "000" + roomId));
+            root.AppendChild(node("mission", "0"));
+            root.AppendChild(node("maxlimit", "2147483647"));
+            root.AppendChild(node("state", "0"));
+            root.AppendChild(node("real_name", "0"));
+            root.AppendChild(node("source", "k-v"));
             #endregion
             //monitor.StreamStarted += _StreamStarted;
             monitor.ReceivedDanmaku += Receiver_ReceivedDanmaku;
             _list.Add(roomId, this);
-
             stream_begin = DateTimeToUnixTime(DateTime.Now);
-            stream_to_file.WriteLine("<RECOVER_INFO Time_Start='" + stream_begin + "'/>");
+            root.AppendChild(node("RECOVER_INFO", "Time_Start", stream_begin.ToString()));
             logger.Log(roomId, LogLevel.Debug, "弹幕录制：直播间开播(@" + stream_begin + ")");
+        }
+        public XmlElement node(string name,string inner)
+        {
+            XmlElement ss = xml.CreateElement(name); ss.InnerText = inner;
+            return ss;
+        }
+        public XmlElement node(string name, string att_name,string att_value)
+        {
+            XmlElement ss = xml.CreateElement(name);
+            ss.SetAttribute(att_name, att_value);
+            return ss;
         }
         public static int DateTimeToUnixTime(DateTime dateTime)
         {
@@ -126,23 +140,64 @@ namespace BililiveRecorder.Core
                             streammer = xun[2]?.ToObject<string>();
                             targetstreamID = xun[3].ToObject<int>();
                         }
-                        stream_to_file.WriteLine("<d p=\"" + sb + "\" recover_info_sendtime='" + e.Danmaku.SendTime + "' username='" + e.Danmaku.UserName + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + e.Danmaku.IsAdmin + "' vip='" + e.Danmaku.IsVIP + "' tag='" + xunz + "' tag_level='" + level + "' tag_streammer='" + streammer + "' tag_stream_id='" + targetstreamID + "'>" + e.Danmaku.CommentText + "</d>");
+
+                        XmlElement ss = node("d", e.Danmaku.CommentText);
+                        ss.SetAttribute("p", sb.ToString());
+                        ss.SetAttribute("t", e.Danmaku.SendTime.ToString());
+                        ss.SetAttribute("un", e.Danmaku.UserName);
+                        ss.SetAttribute("cl", e.Danmaku.UserGuardLevel.ToString());
+                        ss.SetAttribute("ad", e.Danmaku.IsAdmin.ToString());
+                        ss.SetAttribute("vip", e.Danmaku.IsVIP.ToString());
+                        ss.SetAttribute("tag", xunz);
+                        ss.SetAttribute("tl", level.ToString());
+                        ss.SetAttribute("ts", streammer);
+                        ss.SetAttribute("tsid", targetstreamID.ToString());
+                        root.AppendChild(ss);
+
                         break;
                     case MsgTypeEnum.GiftSend:
                         logger.Log(LogLevel.Info, "[礼物]<" + e.Danmaku.UserName + ">(" + e.Danmaku.GiftName + ") * " + e.Danmaku.GiftCount);
-                        stream_to_file.WriteLine("<gift time='" + time_referrence + "' username='" + e.Danmaku.UserName + "' giftname='" + e.Danmaku.GiftName + "' count='" + e.Danmaku.GiftCount + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + e.Danmaku.IsAdmin + "' vip='" + e.Danmaku.IsVIP + "'/>");
+
+                        XmlElement el = xml.CreateElement("gift");
+                        el.SetAttribute("t", time_referrence.ToString());
+                        el.SetAttribute("un", e.Danmaku.UserName);
+                        el.SetAttribute("gn", e.Danmaku.GiftName);
+                        el.SetAttribute("c", e.Danmaku.GiftCount.ToString());
+                        el.SetAttribute("ad", e.Danmaku.IsAdmin.ToString());
+                        root.AppendChild(el);
+
                         break;
                     case MsgTypeEnum.GuardBuy:
                         logger.Log(LogLevel.Info, "[大航海]<" + e.Danmaku.UserName + ">(上船)" + e.Danmaku.GiftCount + "月");
-                        stream_to_file.WriteLine("<crew time='" + time_referrence + "' username='" + e.Danmaku.UserName + "' count='" + e.Danmaku.GiftCount + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + e.Danmaku.IsAdmin + "' vip='" + e.Danmaku.IsVIP + "'/>");
+
+                        XmlElement ep = xml.CreateElement("crew");
+                        ep.SetAttribute("t", time_referrence.ToString());
+                        ep.SetAttribute("un", e.Danmaku.UserName);
+                        ep.SetAttribute("c", e.Danmaku.GiftCount.ToString());
+                        ep.SetAttribute("cl", e.Danmaku.UserGuardLevel.ToString());
+                        root.AppendChild(ep);
+
                         break;
                     case MsgTypeEnum.Welcome:
                         logger.Log(LogLevel.Info, "[欢迎]<" + e.Danmaku.UserName + ">(欢迎老爷)");
-                        stream_to_file.WriteLine("<vip_enter time='" + time_referrence + "' username='" + e.Danmaku.UserName + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + e.Danmaku.IsAdmin + "' vip='" + e.Danmaku.IsVIP + "'/>");
+
+                        XmlElement ea = xml.CreateElement("vip_enter");
+                        ea.SetAttribute("t", time_referrence.ToString());
+                        ea.SetAttribute("un", e.Danmaku.UserName);
+                        ea.SetAttribute("ad", e.Danmaku.IsAdmin.ToString());
+                        ea.SetAttribute("vip", e.Danmaku.IsVIP.ToString());
+                        root.AppendChild(ea);
+
                         break;
                     case MsgTypeEnum.WelcomeGuard:
                         logger.Log(LogLevel.Info, "[欢迎]<" + e.Danmaku.UserName + ">(欢迎船员)");
-                        stream_to_file.WriteLine("<crew_enter time='" + time_referrence + "' username='" + e.Danmaku.UserName + "' crew='" + e.Danmaku.UserGuardLevel + "' admin='" + e.Danmaku.IsAdmin + "' vip='" + e.Danmaku.IsVIP + "'/>");
+
+                        XmlElement eb = xml.CreateElement("crew_enter");
+                        eb.SetAttribute("t", time_referrence.ToString());
+                        eb.SetAttribute("un", e.Danmaku.UserName);
+                        eb.SetAttribute("cl", e.Danmaku.UserGuardLevel.ToString());
+                        root.AppendChild(eb);
+
                         break;
                     case MsgTypeEnum.Unknown:
                         //logger.Log(LogLevel.Debug, "[弹幕](未解析)" + e.Danmaku.RawData);
@@ -165,18 +220,36 @@ namespace BililiveRecorder.Core
                     string name = obj["uname"]?.ToObject<string>();
                     string operator_ = obj["operator"]?.ToObject<string>();
                     logger.Log(LogLevel.Info, "[管理]" + name + "遭到封禁");
-                    stream_to_file.WriteLine("<ban time='" + time_referrence + "' username='" + name + "' uid='" + uid + "' operator='" + operator_ + "'/>");
+
+                    XmlElement ea = xml.CreateElement("ban");
+                    ea.SetAttribute("t", time_referrence.ToString());
+                    ea.SetAttribute("un", name);
+                    ea.SetAttribute("uid", uid.ToString());
+                    ea.SetAttribute("op", operator_);
+                    root.AppendChild(ea);
+
                     break;
                 case "ROOM_REAL_TIME_MESSAGE_UPDATE":
                     string fans = obj["data"]["fans"]?.ToObject<string>();
                     string red_notice = obj["data"]["red_notice"]?.ToObject<string>();
                     logger.Log(LogLevel.Info, "[信息]当前粉丝数：" + fans + "，警告：" + red_notice);
-                    stream_to_file.WriteLine("<info time='" + time_referrence + "' fans='" + fans + "' red_notice='" + red_notice + "'/>");
+
+                    XmlElement eb = xml.CreateElement("info");
+                    eb.SetAttribute("t", time_referrence.ToString());
+                    eb.SetAttribute("fans", fans);
+                    eb.SetAttribute("rnt", red_notice);
+                    root.AppendChild(eb);
+
                     break;
                 case "ROOM_RANK":
                     string rank_desc = obj["data"]["rank_desc"]?.ToObject<string>();
                     logger.Log(LogLevel.Info, "[信息]直播间当前排名：" + rank_desc);
-                    stream_to_file.WriteLine("<rank value='" + rank_desc + "'/>");
+
+                    XmlElement ec = xml.CreateElement("rank");
+                    ec.SetAttribute("t", time_referrence.ToString());
+                    ec.SetAttribute("v", rank_desc);
+                    root.AppendChild(ec);
+
                     break;
             }
         }
@@ -195,11 +268,11 @@ namespace BililiveRecorder.Core
             }
             try
             {
-                stream_to_file.WriteLine("<RECOVER_INFO Time_Stop='" + DateTimeToUnixTime(DateTime.Now) + "'/>");
-                stream_to_file.WriteLine("<DanmakuRecorder version='2'/>");
-                stream_to_file.WriteLine("</i>");
-                stream_to_file.WriteLine("<!-- \n" +
-                "BililiveRecorder | DanmakuRecorder\n" +
+                root.AppendChild(node("RECOVER_INFO", "Time_Stop", DateTimeToUnixTime(DateTime.Now).ToString()));
+                XmlElement ver = node("DanmakuRecorder", "version", "3");
+                ver.SetAttribute("down_support_to", "3");
+                root.AppendChild(ver);
+                root.AppendChild(xml.CreateComment("BililiveRecorder | DanmakuRecorder\n" +
                 "文件中将包含一些必要的冗余信息以便在时间轴错乱时有机会重新校对时间轴\n" +
                 "这些冗余信息不能被其余的弹幕查看软件所理解\n" +
                 "如果这个文件无法被正确使用，而里面记录了您重要的录播等弹幕数据，请联系我；\n" +
@@ -208,11 +281,9 @@ namespace BililiveRecorder.Core
                 "Github: @developer_ken\n" +
                 "E-mail: dengbw01@outlook.com\n" +
                 "Bilibili: @鸡生蛋蛋生鸡鸡生万物\n" +
-                "QQ: 1250542735\n" +
-                " -->");
-                stream_to_file.Flush();
-                stream_to_file.Close();
-                File.Move(using_fname + ".xml", _recordedRoom.rec_path + ".xml");
+                "QQ: 1250542735\n"));
+
+                xml.Save(_recordedRoom.rec_path + ".xml");
                 logger.Log(LogLevel.Fatal, "弹幕录制模块的一个实例被结束。");
                 logger.Log(LogLevel.Debug, "弹幕文件已保存到：" + _recordedRoom.rec_path + ".xml");
                 _list.Remove(roomId);
