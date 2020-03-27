@@ -10,6 +10,7 @@ namespace BililiveRecorder.Core
         event RoomInfoUpdatedEvent RoomInfoUpdated;
         event StreamStartedEvent StreamStarted;
         event ReceivedDanmakuEvt ReceivedDanmaku;
+        event RoomViewersUpdateEvt RoomViewersUpdate;
 
         bool Start();
         void Stop();

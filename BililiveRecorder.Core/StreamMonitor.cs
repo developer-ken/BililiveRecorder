@@ -49,6 +49,7 @@ namespace BililiveRecorder.Core
         public event RoomInfoUpdatedEvent RoomInfoUpdated;
         public event StreamStartedEvent StreamStarted;
         public event ReceivedDanmakuEvt ReceivedDanmaku;
+        public event RoomViewersUpdateEvt RoomViewersUpdate;
 
         public StreamMonitor(int roomid, Func<TcpClient> funcTcpClient, ConfigV1 config)
         {
@@ -263,7 +264,11 @@ namespace BililiveRecorder.Core
                         case 1:
                         case 2:
                             {
-                                var viewer = BitConverter.ToUInt32(buffer.Take(4).Reverse().ToArray(), 0); //观众人数
+                                checked
+                                {
+                                    int viewer = (int)BitConverter.ToUInt32(buffer.Take(4).Reverse().ToArray(), 0);  //观众人数
+                                    RoomViewersUpdate?.Invoke(this, new RoomViewersUpdateArgs() { Viewers = viewer });
+                                }
                                 break;
                             }
                         case 3:

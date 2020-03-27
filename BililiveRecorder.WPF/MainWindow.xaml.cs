@@ -33,26 +33,21 @@ namespace BililiveRecorder.WPF
         public ObservableCollection<string> Logs { get; set; } =
             new ObservableCollection<string>()
             {
-                "当前版本：" + BuildInfo.Version,
-                "网站： https://rec.danmuji.org",
-                "更新日志： https://rec.danmuji.org/allposts",
-                "问题反馈邮箱： rec@danmuji.org",
-                "QQ群： 689636812",
-                "============================================",
-                "以上为原作者联系信息",
-                "这个版本为非官方版本，增加了一些实验性功能",
-                "由于我的代码实力不够强，你可能会遭遇一些BUG",
-                "如果出现问题，请使用以下联系方式咨询：",
+                "官方版本：https://rec.danmuji.org",
+                "======[Bililive Recorder - Unofficial]======",
+                "Microstorm Studio - 一个全凭兴趣的技术向小组",
+                "--------------------------------------------",
+                "这个版本为[非官方版本]，增加了一些实验性功能",
+                "仅用于测试用途，我们不对软件造成的损失负责",
+                "当前生成的数据文件版本：v" + DanmakuRecorder.DataFileVersion,
+                "向下兼容最老数据文件版本：v" + DanmakuRecorder.DataFileDownSupport,
+                "更老版本的数据文件不再支持",
+                "",
+                "Unofficial作者联系方式：",
                 "QQ:1250542735",
                 "邮箱: dengbw01@outlook.com",
-                "原作者不应为我写出的BUG负责。",
                 "--------------------------------------------",
-                "如果问题并非出自我更改的部分，我会将其转给原作者",
-                "",
-                "删除直播间按钮在列表右键菜单里",
-                "",
-                "录制速度比 在 100% 左右说明跟上了主播直播的速度",
-                "小于 100% 说明录播电脑的下载带宽不够，跟不上录制直播",
+                "!!! 弹幕录制默认关闭，请到设置中查看 !!!",
             };
 
         public static void AddLog(string message) => _AddLog?.Invoke(message);
@@ -82,8 +77,8 @@ namespace BililiveRecorder.WPF
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            Title += " " + BuildInfo.Version + " " + BuildInfo.HeadShaShort;
-
+            //Title += " " + BuildInfo.Version + " " + BuildInfo.HeadShaShort;  //DanmakuRecorder.DataFileVersion
+            Title += " v" + DanmakuRecorder.DataFileVersion+" 测试版本，请勿用于生产环境";
             bool skip_ui = false;
             string workdir = string.Empty;
 

@@ -15,8 +15,13 @@ namespace BililiveRecorder.Core
     }
 
     public delegate void ReceivedDanmakuEvt(object sender, ReceivedDanmakuArgs e);
+    public delegate void RoomViewersUpdateEvt(object sender, RoomViewersUpdateArgs e);
     public class ReceivedDanmakuArgs
     {
         public DanmakuModel Danmaku;
+    }
+    public class RoomViewersUpdateArgs
+    {
+        public int Viewers;
     }
 }
