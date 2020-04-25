@@ -134,6 +134,19 @@ namespace BililiveRecorder.Core.Config
         [JsonProperty("RecDanmaku_unknown")]
         public bool RecDanmaku_unknown { get => _rec_danmaku_unknown; set => SetField(ref _rec_danmaku_unknown, value); }
 
+                [JsonProperty("record_filename_format")]
+        public string RecordFilenameFormat
+        {
+            get => _record_filename_format;
+            set => SetField(ref _record_filename_format, value);
+        }
+
+        [JsonProperty("clip_filename_format")]
+        public string ClipFilenameFormat
+        {
+            get => _clip_filename_format;
+            set => SetField(ref _clip_filename_format, value);
+        }
         #region INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -167,6 +180,9 @@ namespace BililiveRecorder.Core.Config
 
         private string _cookie = string.Empty;
 
-        private bool _avoidTxy = true;
+        private string _record_filename_format = @"{roomid}-{name}\录制-{roomid}-{date}-{time}-{title}.flv";
+        private string _clip_filename_format = @"{roomid}-{name}\剪辑片段-{roomid}-{date}-{time}-{title}.flv";
+
+        private bool _avoidTxy = false;
     }
 }
